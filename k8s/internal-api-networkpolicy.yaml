@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: internal-api-ingress
+  namespace: microservices-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: internal-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: public-api
+      ports:
+        - protocol: TCP
+          port: 8080

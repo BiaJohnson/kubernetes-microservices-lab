@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: public-api
+  namespace: microservices-lab
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: public-api
+  template:
+    metadata:
+      labels:
+        app: public-api
+    spec:
+      containers:
+        - name: public-api
+          image: public-api:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: INTERNAL_SERVICE_URL
+              value: "http://internal-api:8080"
+            - name: AUTH_MODE
+              value: "local"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: public-api
+  namespace: microservices-lab
+spec:
+  type: ClusterIP
+  selector:
+    app: public-api
+  ports:
+    - port: 8080
+      targetPort: 8080
